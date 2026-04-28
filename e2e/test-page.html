@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Marver GTM E2E test</title></head>
+<body>
+  <button id="cta" data-track="cta">Click me</button>
+  <script>
+    // Simulates what the GTM Init tag does: inject SDK then init.
+    const script = document.createElement('script');
+    script.src = window.SDK_URL || 'https://cdn.chip-hosting.com/marver/v1/dwb-analytics.min.js';
+    script.onload = () => {
+      window.dwb.init({
+        endpoint: window.ENDPOINT || 'http://localhost:9999',
+        clientId: 'e2e-test',
+        debug: true,
+        batchSize: 1,
+        flushInterval: 100,
+        autoTrack: { pageView: true, click: true, selectors: { click: '[data-track]' } }
+      });
+    };
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>
