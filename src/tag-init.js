@@ -45,18 +45,20 @@ function onScriptLoaded(config, gtm) {
 
   gtm.callInWindow('dwb.init', sdkConfig);
 
-  // Drain queue: process any calls queued before SDK loaded
+  // Snapshot the existing queue, then install the shim before draining
+  // so any concurrent pushes during drain go through the shim, not the
+  // stranded array.
   const queue = gtm.copyFromWindow('dwbq') || [];
+  gtm.setInWindow('dwbq', { push: function (call) {
+    gtm.callInWindow('dwb.' + call[0], ...call.slice(1));
+  }}, true);
+
+  // Drain the snapshotted queue
   for (const call of queue) {
     if (Array.isArray(call) && call.length > 0) {
       gtm.callInWindow('dwb.' + call[0], ...call.slice(1));
     }
   }
-
-  // Replace queue with direct-invoke shim for future calls
-  gtm.setInWindow('dwbq', { push: function (call) {
-    gtm.callInWindow('dwb.' + call[0], ...call.slice(1));
-  }}, true);
 
   gtm.gtmOnSuccess();
 }
