@@ -32,5 +32,5 @@ You probably have **both** Auto-track Page Views ON in Init **and** a separate S
 
 ## Getting help
 
-- File an issue: https://github.com/chip902/marver-gtm-templates/issues
+- File an issue: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates/issues
 - Include: GTM container ID, browser console output, Network tab screenshot
