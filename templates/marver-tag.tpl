@@ -173,13 +173,18 @@ if (data.mode === 'init') {
     }
   };
 
-  const dwb = copyFromWindow('dwb');
+  // Always-on entry log so silent failures (deferred init, init throws) are visible.
+  logToConsole("[dwb] init mode: clientId=", config.clientId, "waitForConsent=", config.waitForConsent);
+
+  const dwb = copyFromWindow("dwb");
   if (dwb && callInWindow('dwb.isInitialized')) {
-    if (config.debug) logToConsole('[dwb] already initialized — skipping');
+    logToConsole('[dwb] already initialized — skipping');
     data.gtmOnSuccess();
   } else {
     const proceed = function () {
+      logToConsole("[dwb] injecting SDK from", CDN_URL);
       injectScript(CDN_URL, function () {
+        logToConsole("[dwb] script loaded, calling dwb.init");
         const sdkConfig = {
           endpoint: config.endpoint,
           clientId: config.clientId,
@@ -187,7 +192,14 @@ if (data.mode === 'init') {
           autoTrack: config.autoTrack
         };
         if (config.cookieDomain) sdkConfig.cookieDomain = config.cookieDomain;
-        callInWindow('dwb.init', sdkConfig);
+        try {
+          callInWindow('dwb.init', sdkConfig);
+          logToConsole('[dwb] dwb.init returned, isInitialized=', callInWindow('dwb.isInitialized'));
+        } catch (e) {
+          logToConsole('[dwb] dwb.init threw:', e);
+          data.gtmOnFailure();
+          return;
+        }
 
         // Snapshot existing queue, install shim, then drain.
         const queue = copyFromWindow('dwbq') || [];
@@ -200,13 +212,13 @@ if (data.mode === 'init') {
         }
         data.gtmOnSuccess();
       }, function () {
-        if (config.debug) logToConsole('[dwb] script load failed');
+        logToConsole('[dwb] script load failed');
         data.gtmOnFailure();
       });
     };
 
     if (config.waitForConsent && !isConsentGranted('analytics_storage')) {
-      if (config.debug) logToConsole('[dwb] deferring init — waiting for analytics_storage consent');
+      logToConsole('[dwb] deferring init — waiting for analytics_storage consent');
       addConsentListener('analytics_storage', function (state) { if (state === 'granted') proceed(); });
     } else {
       proceed();

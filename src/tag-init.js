@@ -1,10 +1,15 @@
 const CDN_URL = 'https://cdn.chip-hosting.com/marver/v1/dwb-analytics.min.js';
 
 export function runInitMode(config, gtm) {
+  // Always-on entry log: surfaces the loader's path even when debug is off.
+  // Without this, every failure mode (deferred, idempotent skip, init throw)
+  // is invisible from the page console.
+  gtm.logToConsole('[dwb] init mode: clientId=', config.clientId, 'waitForConsent=', !!config.waitForConsent);
+
   // Idempotent guard: check if dwb already initialized
   const dwb = gtm.copyFromWindow('dwb');
   if (dwb && gtm.callInWindow('dwb.isInitialized')) {
-    if (config.debug) gtm.logToConsole('[dwb] already initialized — skipping');
+    gtm.logToConsole('[dwb] already initialized — skipping');
     gtm.gtmOnSuccess();
     return;
   }
@@ -13,7 +18,7 @@ export function runInitMode(config, gtm) {
 
   // Check consent gate
   if (config.waitForConsent && !gtm.isConsentGranted('analytics_storage')) {
-    if (config.debug) gtm.logToConsole('[dwb] deferring init — waiting for analytics_storage consent');
+    gtm.logToConsole('[dwb] deferring init — waiting for analytics_storage consent');
     gtm.addConsentListener('analytics_storage', (state) => {
       if (state === 'granted') proceed();
     });
@@ -24,17 +29,20 @@ export function runInitMode(config, gtm) {
 }
 
 function doInject(config, gtm) {
+  gtm.logToConsole('[dwb] injecting SDK from', CDN_URL);
   gtm.injectScript(
     CDN_URL,
     () => onScriptLoaded(config, gtm),
     () => {
-      if (config.debug) gtm.logToConsole('[dwb] script load failed');
+      gtm.logToConsole('[dwb] script load failed');
       gtm.gtmOnFailure();
     },
   );
 }
 
 function onScriptLoaded(config, gtm) {
+  gtm.logToConsole('[dwb] script loaded, calling dwb.init');
+
   const sdkConfig = {
     endpoint: config.endpoint,
     clientId: config.clientId,
@@ -43,7 +51,14 @@ function onScriptLoaded(config, gtm) {
   };
   if (config.cookieDomain) sdkConfig.cookieDomain = config.cookieDomain;
 
-  gtm.callInWindow('dwb.init', sdkConfig);
+  try {
+    gtm.callInWindow('dwb.init', sdkConfig);
+    gtm.logToConsole('[dwb] dwb.init returned, isInitialized=', gtm.callInWindow('dwb.isInitialized'));
+  } catch (e) {
+    gtm.logToConsole('[dwb] dwb.init threw:', e);
+    gtm.gtmOnFailure();
+    return;
+  }
 
   // Snapshot the existing queue, then install the shim before draining
   // so any concurrent pushes during drain go through the shim, not the
