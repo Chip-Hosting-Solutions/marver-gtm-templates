@@ -13,10 +13,10 @@ In GTM:
 1. **Templates** in the left sidebar
 2. **New** under **Tag Templates**
 3. Click the **⋮** menu → **Edit as Code**
-4. Open `templates/marver-tag.tpl` from this repo and copy its contents
+4. Open `templates/marver-tag/template.tpl` from this repo and copy its contents
 5. Paste into the GTM editor → **Save**
 
-Repeat for **Variable Templates** using `templates/marver-visitor-id.tpl`.
+Repeat for **Variable Templates** using `templates/marver-visitor-id/template.tpl`.
 
 ### 2. Create the Init tag
 

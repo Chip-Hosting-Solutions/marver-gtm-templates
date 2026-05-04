@@ -3,7 +3,7 @@ ___INFO___
 {
   "type": "MACRO",
   "id": "cvt_temp_public_id",
-  "version": 1,
+  "version": 2,
   "securityGroups": [],
   "displayName": "Marver — Visitor ID",
   "description": "Returns the value of the Marver SDK visitor ID cookie. Use to forward the same visitor ID to other tags. Reads _dwb_id (canonical), _dwb_vid (legacy npm SDK), and dwb_vid (BC tier paste-a-tag) in that order.",
