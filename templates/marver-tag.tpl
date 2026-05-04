@@ -135,6 +135,17 @@ ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
 // HAND-SYNCED FROM src/tag-init.js, src/tag-send-event.js, src/tag-identify.js
 // When updating, copy the corresponding logic from those source files.
+//
+// SANDBOX CONSTRAINTS — diverges from src/ in these ways:
+//   1. NO try/catch/finally. GTM sandboxed JS rejects them at parse time.
+//      A throw inside a callInWindow target aborts the entire sandbox script
+//      silently (no propagation). Detect failures by post-call state probes
+//      (e.g. callInWindow('dwb.isInitialized')) instead.
+//   2. EVERY dotted callInWindow path needs its own access_globals entry in
+//      ___WEB_PERMISSIONS___ with execute=true. Granting execute on the parent
+//      "dwb" key does NOT cover "dwb.init", "dwb.track", etc. — paths are
+//      matched literally with no prefix/wildcard semantics. A missing entry
+//      causes the same silent sandbox abort as item (1).
 
 const copyFromWindow = require('copyFromWindow');
 const setInWindow = require('setInWindow');
@@ -192,11 +203,15 @@ if (data.mode === 'init') {
           autoTrack: config.autoTrack
         };
         if (config.cookieDomain) sdkConfig.cookieDomain = config.cookieDomain;
-        try {
-          callInWindow('dwb.init', sdkConfig);
-          logToConsole('[dwb] dwb.init returned, isInitialized=', callInWindow('dwb.isInitialized'));
-        } catch (e) {
-          logToConsole('[dwb] dwb.init threw:', e);
+        // GTM sandboxed JS does not support try/catch. If the call below throws
+        // (e.g. missing access_globals permission for dwb.init), the entire
+        // sandbox script aborts silently and the post-init log never fires —
+        // that absence IS the diagnostic. On success the post-init log appears.
+        callInWindow('dwb.init', sdkConfig);
+        const isInit = callInWindow('dwb.isInitialized');
+        logToConsole('[dwb] dwb.init returned, isInitialized=', isInit);
+        if (!isInit) {
+          logToConsole('[dwb] WARNING: dwb.init completed but SDK reports not initialized');
           data.gtmOnFailure();
           return;
         }
@@ -264,8 +279,12 @@ ___WEB_PERMISSIONS___
   },
   {
     "instance": { "key": { "publicId": "access_globals", "versionId": "1" }, "param": [{ "key": "keys", "value": { "type": 2, "listItem": [
-      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb"},{"type":8,"boolean":true},{"type":8,"boolean":true},{"type":8,"boolean":true}] },
-      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwbq"},{"type":8,"boolean":true},{"type":8,"boolean":true},{"type":8,"boolean":false}] }
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb"},{"type":8,"boolean":true},{"type":8,"boolean":true},{"type":8,"boolean":false}] },
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwbq"},{"type":8,"boolean":true},{"type":8,"boolean":true},{"type":8,"boolean":false}] },
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb.init"},{"type":8,"boolean":true},{"type":8,"boolean":false},{"type":8,"boolean":true}] },
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb.isInitialized"},{"type":8,"boolean":true},{"type":8,"boolean":false},{"type":8,"boolean":true}] },
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb.track"},{"type":8,"boolean":true},{"type":8,"boolean":false},{"type":8,"boolean":true}] },
+      { "type": 3, "mapKey": [{"type":1,"string":"key"},{"type":1,"string":"read"},{"type":1,"string":"write"},{"type":1,"string":"execute"}], "mapValue":[{"type":1,"string":"dwb.identify"},{"type":8,"boolean":true},{"type":8,"boolean":false},{"type":8,"boolean":true}] }
     ] } }] }
   },
   {
