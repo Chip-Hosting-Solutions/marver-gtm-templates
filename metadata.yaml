@@ -8,7 +8,7 @@ description: |
 categories:
   - ANALYTICS
 versions:
-  - sha: 162d551
+  - sha: 162d551dee9d51accf821ad387b13ff04d7c0b8a
     changeNotes: |
       Initial Gallery release. The bundled GTM tag template:
       - Injects the Marver SDK from cdn.chip-hosting.com/marver/v1/
