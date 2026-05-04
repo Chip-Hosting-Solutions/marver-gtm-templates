@@ -30,6 +30,15 @@ You probably have **both** Auto-track Page Views ON in Init **and** a separate S
 - The SDK posts to whatever URL you set in **Sensor Endpoint URL**. Double-check it's reachable from the browser (try opening it directly).
 - If your Sensor is behind Twingate / VPN, the visitor's browser cannot reach it. Use a public Sensor URL.
 
+## "Marver — Visitor ID variable returns a different value than `dwb.getVisitorId()`"
+
+The variable reads cookies only (`_dwb_id`, `_dwb_vid`, `dwb_vid` — in that order). The SDK has dual persistence and may read its visitor ID from `localStorage._dwb_id` when the cookie is absent. The two diverge in two scenarios:
+
+- **Cross-domain Sensor.** The SDK posts to your Sensor and the Sensor's `Set-Cookie` response sets `_dwb_id`. That cookie only sticks if the Sensor's domain is the same registrable domain as the page (e.g., `sensor.acme.com` ↔ `acme.com`). In Vercel preview deployments — or any setup where the Sensor and app are on different registrable domains — the cookie is dropped, the SDK falls back to localStorage, and the GTM variable returns empty (or the legacy `dwb_vid` if present from an older install).
+- **Mid-migration from the legacy `dwb_vid` paste-a-tag install.** The variable returns the legacy ID until the SDK writes a fresh `_dwb_id` cookie. If the SDK is using a cross-domain Sensor (above) it never will, and the variable will keep returning the legacy ID.
+
+To diagnose: run `localStorage.getItem('_dwb_id')` in the console. If that returns a value but `document.cookie` doesn't contain `_dwb_id`, you're hitting the cross-domain case. The fix lives in the SDK (proactively write `_dwb_id` to cookie during `init()`) or in your deployment topology (host the Sensor on a subdomain of the page's domain).
+
 ## Getting help
 
 - File an issue: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates/issues
