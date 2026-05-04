@@ -1,0 +1,20 @@
+homepage: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates
+documentation: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates#readme
+description: |
+  Send page views, custom events, and identify calls to a Marver / Data
+  Workbench Sensor. Auto-tracks SPA navigation, click, and form events.
+  Events flow only to the Sensor URL you configure — Marver does not
+  collect any third-party data.
+categories:
+  - ANALYTICS
+versions:
+  - sha: fb3ddc50aff7d4740a35cedcc8c480c7062aa45b
+    changeNotes: |
+      Version 2:
+      - Adds explicit access_globals permission entries for dwb.init,
+        dwb.isInitialized, dwb.track, dwb.identify (each dotted path
+        requires its own entry — top-level "dwb" execute does not cover
+        nested method calls).
+      - Removes try/catch wrappers (unsupported in GTM sandboxed JS).
+        Failures are now detected via post-call isInitialized() probe.
+      - Adds always-on diagnostic logs ([dwb] ...) to surface init issues.

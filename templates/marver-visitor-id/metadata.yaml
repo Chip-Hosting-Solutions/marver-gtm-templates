@@ -1,0 +1,14 @@
+homepage: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates
+documentation: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates#readme
+description: |
+  Returns the Marver SDK persistent visitor ID cookie. Use as a Variable
+  to forward the same visitor ID to other tags or to read it from any
+  GTM trigger condition. Reads the canonical _dwb_id cookie first, then
+  falls back to _dwb_vid (legacy npm SDK) and dwb_vid (BC tier paste-a-tag).
+categories:
+  - UTILITY
+versions:
+  - sha: fb3ddc50aff7d4740a35cedcc8c480c7062aa45b
+    changeNotes: |
+      Version 2: initial Gallery-ready release. Cookie precedence chain
+      matches the SDK's own CookieManager.initialize() fallback order.
