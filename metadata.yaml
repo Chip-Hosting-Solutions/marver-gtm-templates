@@ -8,13 +8,20 @@ description: |
 categories:
   - ANALYTICS
 versions:
-  - sha: fb3ddc50aff7d4740a35cedcc8c480c7062aa45b
+  - sha: 162d551
     changeNotes: |
-      Version 2:
-      - Adds explicit access_globals permission entries for dwb.init,
-        dwb.isInitialized, dwb.track, dwb.identify (each dotted path
-        requires its own entry — top-level "dwb" execute does not cover
-        nested method calls).
-      - Removes try/catch wrappers (unsupported in GTM sandboxed JS).
-        Failures are now detected via post-call isInitialized() probe.
-      - Adds always-on diagnostic logs ([dwb] ...) to surface init issues.
+      Initial Gallery release. The bundled GTM tag template:
+      - Injects the Marver SDK from cdn.chip-hosting.com/marver/v1/
+      - Single tag with three modes: Configure Marver, Send Event,
+        Identify User.
+      - Auto-tracks page views (incl. SPA route changes via the SDK's
+        Navigation API + history.pushState patches), clicks, and form
+        submits.
+      - Honors GTM Consent Mode v2 (waits for analytics_storage).
+      - access_globals permissions enumerate every nested SDK method
+        path the tag invokes (dwb.init, dwb.isInitialized, dwb.track,
+        dwb.identify) — required because GTM's permission model does
+        not match prefixes.
+      - No try/catch (unsupported in GTM sandboxed JS); init failure
+        is detected via post-call isInitialized() probe.
+      - Always-on diagnostic logs ([dwb] ...) surface init issues.
