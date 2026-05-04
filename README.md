@@ -10,7 +10,7 @@ Google Tag Manager templates for Marver — Data Workbench's analytics platform.
 ## Quick install
 
 1. Open your GTM container → **Templates** → **New** → **Tag Template** → **Edit as Code**
-2. Paste contents of `templates/marver-tag/template.tpl`
+2. Paste contents of `template.tpl` (at repo root)
 3. Repeat for Variable Template using `templates/marver-visitor-id/template.tpl`
 4. Create a tag instance, set Mode = "Configure Marver", point at your Sensor URL
 
