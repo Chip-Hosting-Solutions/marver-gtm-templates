@@ -39,6 +39,10 @@ The variable reads cookies only (`_dwb_id`, `_dwb_vid`, `dwb_vid` — in that or
 
 To diagnose: run `localStorage.getItem('_dwb_id')` in the console. If that returns a value but `document.cookie` doesn't contain `_dwb_id`, you're hitting the cross-domain case. The fix lives in the SDK (proactively write `_dwb_id` to cookie during `init()`) or in your deployment topology (host the Sensor on a subdomain of the page's domain).
 
+## "Events arrive but have no geography (the Globe is empty)"
+
+Geo enrichment needs your **Sensor** to see the visitor's real public IP — and a GeoLite2 database provisioned on the Sensor side. Common causes: a proxy/CDN in front of the Sensor that doesn't forward `X-Forwarded-For`, testing from a private/localhost IP, or no GeoLite2 database provisioned. There is nothing to change in the GTM template. See **[docs/geo-ip.md](./geo-ip.md)** for the full path and proxy settings.
+
 ## Getting help
 
 - File an issue: https://github.com/Chip-Hosting-Solutions/marver-gtm-templates/issues
